@@ -1,6 +1,6 @@
 {
   "name": "@upleveled/ley",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "repository": "upleveled/ley",
   "description": "Driver-agnostic database migrations",
   "types": "ley.d.ts",
