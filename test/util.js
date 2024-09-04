@@ -12,11 +12,12 @@ const hasImports = semiver(version, '12.0.0') > 0;
 // ---
 
 const glob = suite('$.glob', {
-	dir: join(fixtures, 'pg', 'migrations')
+	dir: join(fixtures, 'pg', 'migrations'),
+	fileRegex: '\.[cm]?[tj]s$'
 });
 
 glob('usage', async ctx => {
-	const out = await $.glob(ctx.dir);
+	const out = await $.glob(ctx.dir, ctx.fileRegex);
 	assert.ok(Array.isArray(out), 'returns Promise<Array>');
 	assert.is(out.length, 6, '~> has 6 items');
 
@@ -32,7 +33,7 @@ glob('usage', async ctx => {
 });
 
 glob('fileRegex option', async ctx => {
-	const out = await $.glob(ctx.dir, /00[123]\.js/);
+	const out = await $.glob(ctx.dir, '00[123]\.js$');
 	assert.ok(Array.isArray(out), 'returns Promise<Array>');
 	assert.is(out.length, 3, '~> has 3 items');
 

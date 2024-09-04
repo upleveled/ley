@@ -25,7 +25,7 @@ async function parse(opts) {
 		$.isDriver(driver); // throws validation error(s)
 	}
 
-	const migrations = await $.glob(dir, opts.config.fileRegex);
+	const migrations = await $.glob(dir, opts.fileRegex);
 
 	return { driver, migrations };
 }
@@ -108,7 +108,7 @@ exports.new = async function (opts={}) {
 
 	let str = '';
 	await mkdir(dir);
-	
+
 	if (opts.esm) {
 		str += 'export async function up(client) {\n\n}\n\n';
 		str += 'export async function down(client) {\n\n}\n';
