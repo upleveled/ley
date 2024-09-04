@@ -250,7 +250,7 @@ load('failure', async () => {
 		assert.unreachable();
 	} catch (err) {
 		assert.instance(err, Error);
-		assert.is(err.code, 'MODULE_NOT_FOUND');
+		assert.is(err.code, hasImports ? 'ERR_MODULE_NOT_FOUND' : 'MODULE_NOT_FOUND');
 		assert.match(err.message, foobar);
 	}
 });
