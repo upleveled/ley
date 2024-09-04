@@ -31,6 +31,22 @@ glob('usage', async ctx => {
 	assert.equal(names, expects, '~> file order is expected');
 });
 
+glob('fileRegex option', async ctx => {
+	const out = await $.glob(ctx.dir, /00[123]\.js/);
+	assert.ok(Array.isArray(out), 'returns Promise<Array>');
+	assert.is(out.length, 3, '~> has 3 items');
+
+	const first = out[0];
+	assert.type(first, 'object', 'items are objects');
+	assert.type(first.name, 'string', '~> has "name" string');
+	assert.type(first.abs, 'string', '~> has "abs" string');
+	assert.ok(isAbsolute(first.abs), '~~> is absolute path');
+
+	const names = out.map(x => x.name);
+	const expects = ['001.js', '002.js', '003.js'];
+	assert.equal(names, expects, '~> file order is expected');
+});
+
 glob('throws', async ctx => {
 	let caught = false;
 
