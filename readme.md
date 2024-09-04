@@ -396,6 +396,12 @@ Default: `migrations`
 
 The directory (relative to `opts.cwd`) to find migration files.
 
+#### opts.fileRegex
+Type: `RegExp`<br>
+Default: `/\.[cm]?[tj]s$/`
+
+The file regex used to find migration files in `opts.dir`.
+
 #### opts.driver
 Type: `string` or `Driver`<br>
 Default: `undefined`
