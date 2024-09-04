@@ -25,7 +25,7 @@ async function parse(opts) {
 		$.isDriver(driver); // throws validation error(s)
 	}
 
-	const migrations = await $.glob(dir, opts.fileRegex);
+	const migrations = await $.glob(dir, opts.config.fileRegex);
 
 	return { driver, migrations };
 }
