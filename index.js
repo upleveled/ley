@@ -90,8 +90,7 @@ exports.status = async function (opts={}) {
 }
 
 exports.new = async function (opts={}) {
-	let dir = join(resolve(opts.cwd || '.'), opts.dir);
-	let migrations = await $.glob(dir, opts.fileRegex);
+	let { migrations } = await parse(opts);
 
 	let prefix = '';
 	if (opts.timestamp) {
@@ -113,12 +112,14 @@ exports.new = async function (opts={}) {
 	} else if (ext !== '.ts' && ext !== '.tsx') {
 		throw new Error('New migration files must use a TypeScript extension (.ts or .tsx)');
 	}
+	let dir = resolve(opts.cwd || '.', opts.dir);
+	let file = join(dir, filename);
 	await mkdir(dir);
 
 	let isPostgres = resolveDriver(opts) === 'postgres';
 	let arg = isPostgres ? 'sql: Sql' : 'client';
 	writeFileSync(
-		join(dir, filename),
+		file,
 		`${isPostgres ? "import type { Sql } from 'postgres';\n\n" : ''}export async function up(${arg}) {\n\n}\n\nexport async function down(${arg}) {\n\n}\n`
 	);
 
