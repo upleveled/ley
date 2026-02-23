@@ -356,7 +356,7 @@ Type: `string`
 
 **Required.** The name of the file to be created.
 
-> **Note:** A prefix will be prepended based on [`opts.timestamp`](#optstimestamp) and [`opts.length`](#optslength) values.<br>If your input does not already end with an extension, then `.ts` will be appended.
+> **Note:** A prefix will be prepended based on [`opts.timestamp`](#optstimestamp) and [`opts.length`](#optslength) values.<br>If your input does not already end with an extension, then `.ts` will be appended. If an extension is provided, it must be `.ts` or `.tsx`.
 
 #### opts.timestamp
 Type: `boolean`<br>

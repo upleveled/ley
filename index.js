@@ -1,4 +1,4 @@
-const { join, resolve } = require('path');
+const { extname, join, resolve } = require('path');
 const { writeFileSync } = require('fs');
 const { mkdir } = require('mk-dirs');
 const $ = require('./lib/util');
@@ -90,8 +90,7 @@ exports.status = async function (opts={}) {
 }
 
 exports.new = async function (opts={}) {
-	let cwd = resolve(opts.cwd || '.');
-	let dir = join(cwd, opts.dir);
+	let dir = join(resolve(opts.cwd || '.'), opts.dir);
 	let migrations = await $.glob(dir, opts.fileRegex);
 
 	let prefix = '';
@@ -108,16 +107,19 @@ exports.new = async function (opts={}) {
 	}
 
 	let filename = prefix + '-' + opts.filename.replace(/\s+/g, '-');
-	if (!/\.\w+$/.test(filename)) filename += '.ts';
+	let ext = extname(filename);
+	if (!ext) {
+		filename += '.ts';
+	} else if (ext !== '.ts' && ext !== '.tsx') {
+		throw new Error('New migration files must use a TypeScript extension (.ts or .tsx)');
+	}
 	await mkdir(dir);
 
-	let driver = pickDriver(opts);
-	let withPostgresTypes = driver === 'postgres' && /\.tsx?$/.test(filename);
-	let arg = driver === 'postgres' ? (withPostgresTypes ? 'sql: Sql' : 'sql') : 'client';
-	let header = withPostgresTypes ? "import type { Sql } from 'postgres';\n\n" : '';
+	let isPostgres = pickDriver(opts) === 'postgres';
+	let arg = isPostgres ? 'sql: Sql' : 'client';
 	writeFileSync(
 		join(dir, filename),
-		`${header}export async function up(${arg}) {\n\n}\n\nexport async function down(${arg}) {\n\n}\n`
+		`${isPostgres ? "import type { Sql } from 'postgres';\n\n" : ''}export async function up(${arg}) {\n\n}\n\nexport async function down(${arg}) {\n\n}\n`
 	);
 
 	return filename;
