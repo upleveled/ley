@@ -223,11 +223,10 @@ export default {
 }
 ```
 
-Finally, migration files may also be written using ESM syntax:
+Migration files use ESM syntax:
 
 ```js
-// migrations/000-example.mjs
-// or w/ "type": "module" ~> migrations/000-example.js
+// migrations/000-example.js
 export async function up(DB) {
   // with `pg` :: DB === pg.Client
   await DB.query(`select * from users`);
@@ -241,18 +240,28 @@ export async function down(DB) {
 }
 ```
 
-You may generate new migration files in ESM syntax by passing the `--esm` flag to the `ley new` command:
+`ley new` generates ESM migrations by default:
 
 ```sh
-$ ley new todos --esm
-#=> migrations/003-todos.mjs
+$ ley new todos
+#=> migrations/003-todos.ts
 
-$ cat migrations/003-todos.mjs
+$ cat migrations/003-todos.ts
 #=> export async function up(client) {
 #=> }
 #=> 
 #=> export async function down(client) {
 #=> }
+```
+
+When `postgres` is auto-detected, generated migrations default to:
+
+```ts
+import type { Sql } from 'postgres';
+
+export async function up(sql: Sql) {}
+
+export async function down(sql: Sql) {}
 ```
 
 ## Drivers
@@ -300,7 +309,7 @@ You may also use [JSDoc](https://jsdoc.app/) annotations throughout your file to
 
 ```js
 /** @param {import('pg').Client} DB */
-exports.up = async function (DB) {
+export async function up(DB) {
   await DB.query(...)
 }
 ```
@@ -353,15 +362,7 @@ Type: `string`
 
 **Required.** The name of the file to be created.
 
-> **Note:** A prefix will be prepended based on [`opts.timestamp`](#optstimestamp) and [`opts.length`](#optslength) values.<br>If your input does not already end with an extension, then `.js` or `.mjs` will be appended.
-
-#### opts.esm
-Type: `boolean`<br>
-Default: `false`
-
-Create a migration file with ESM syntax.
-
-> **Note:** When true, the `opts.filename` will contain the `.mjs` file extension unless your input already has an extension.
+> **Note:** A prefix will be prepended based on [`opts.timestamp`](#optstimestamp) and [`opts.length`](#optslength) values.<br>If your input does not already end with an extension, then `.ts` will be appended.
 
 #### opts.timestamp
 Type: `boolean`<br>

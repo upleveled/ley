@@ -102,19 +102,20 @@ exports.new = async function (opts={}) {
 	}
 
 	let filename = prefix + '-' + opts.filename.replace(/\s+/g, '-');
-	if (!/\.\w+$/.test(filename)) filename += opts.esm ? '.mjs' : '.js';
+	if (!/\.\w+$/.test(filename)) filename += '.ts';
 	let dir = resolve(opts.cwd || '.', opts.dir);
 	let file = join(dir, filename);
 
 	let str = '';
 	await mkdir(dir);
 
-	if (opts.esm) {
+	if ($.detect() === 'postgres') {
+		str += "import type { Sql } from 'postgres';\n\n";
+		str += 'export async function up(sql: Sql) {}\n\n';
+		str += 'export async function down(sql: Sql) {}\n';
+	} else {
 		str += 'export async function up(client) {\n\n}\n\n';
 		str += 'export async function down(client) {\n\n}\n';
-	} else {
-		str += 'exports.up = async client => {\n\n};\n\n';
-		str += 'exports.down = async client => {\n\n};\n';
 	}
 	writeFileSync(file, str);
 
