@@ -102,11 +102,17 @@ These must be exported functions &mdash; `async` okay! &mdash; and will receive 
 import type { Sql } from 'postgres';
 
 export async function up(sql: Sql) {
-  await sql`select * from users`;
+  await sql`
+    create table if not exists users (
+      id serial primary key,
+      email text not null unique,
+      created_at timestamp with time zone default now()
+    );
+  `;
 }
 
 export async function down(sql: Sql) {
-  // My pre-configured "undo" function
+  await sql`drop table if exists users`;
 }
 ```
 
@@ -228,11 +234,17 @@ Migration files use ESM syntax:
 import type { Sql } from 'postgres';
 
 export async function up(sql: Sql) {
-  await sql`select * from users`;
+  await sql`
+    create table if not exists users (
+      id serial primary key,
+      email text not null unique,
+      created_at timestamp with time zone default now()
+    );
+  `;
 }
 
 export async function down(sql: Sql) {
-  // My pre-configured "undo" function
+  await sql`drop table if exists users`;
 }
 ```
 
