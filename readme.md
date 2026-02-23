@@ -227,43 +227,6 @@ export default {
 }
 ```
 
-Migration files use ESM syntax:
-
-```ts
-// migrations/000-example.ts
-import type { Sql } from 'postgres';
-
-export async function up(sql: Sql) {
-  await sql`
-    create table if not exists users (
-      id serial primary key,
-      email text not null unique,
-      created_at timestamp with time zone default now()
-    );
-  `;
-}
-
-export async function down(sql: Sql) {
-  await sql`drop table if exists users`;
-}
-```
-
-`ley new` generates ESM migrations by default:
-
-```sh
-$ ley new todos
-#=> migrations/003-todos.ts
-
-$ cat migrations/003-todos.ts
-#=> import type { Sql } from 'postgres';
-#=> 
-#=> export async function up(sql: Sql) {
-#=> }
-#=> 
-#=> export async function down(sql: Sql) {
-#=> }
-```
-
 When `postgres` is auto-detected, generated migrations default to:
 
 ```ts
