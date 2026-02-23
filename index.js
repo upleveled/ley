@@ -3,6 +3,10 @@ const { writeFileSync } = require('fs');
 const { mkdir } = require('mk-dirs');
 const $ = require('./lib/util');
 
+function pickDriver(opts) {
+	return opts.driver || (opts.config && opts.config.driver) || $.detect();
+}
+
 async function parse(opts) {
 	const cwd = resolve(opts.cwd || '.');
 	const dir = join(cwd, opts.dir);
@@ -14,8 +18,7 @@ async function parse(opts) {
 	});
 
 	// cli(`--driver`) > config(exports.driver) > autodetect
-	let selected = opts.driver || (opts.config && opts.config.driver) || $.detect();
-	let driver = selected;
+	let driver = pickDriver(opts);
 	if (!driver) throw new Error('Unable to locate a database driver');
 
 	// allow `require` throws
@@ -28,7 +31,7 @@ async function parse(opts) {
 
 	const migrations = await $.glob(dir, opts.fileRegex);
 
-	return { driver, migrations, selected };
+	return { driver, migrations };
 }
 
 exports.up = async function (opts={}) {
@@ -87,7 +90,9 @@ exports.status = async function (opts={}) {
 }
 
 exports.new = async function (opts={}) {
-	let { migrations, selected } = await parse(opts);
+	let cwd = resolve(opts.cwd || '.');
+	let dir = join(cwd, opts.dir);
+	let migrations = await $.glob(dir, opts.fileRegex);
 
 	let prefix = '';
 	if (opts.timestamp) {
@@ -104,25 +109,16 @@ exports.new = async function (opts={}) {
 
 	let filename = prefix + '-' + opts.filename.replace(/\s+/g, '-');
 	if (!/\.\w+$/.test(filename)) filename += '.ts';
-	let dir = resolve(opts.cwd || '.', opts.dir);
-	let file = join(dir, filename);
-
-	let str = '';
 	await mkdir(dir);
 
-	let isTypeScript = /\.tsx?$/.test(filename);
-	if (selected === 'postgres' && isTypeScript) {
-		str += "import type { Sql } from 'postgres';\n\n";
-		str += 'export async function up(sql: Sql) {}\n\n';
-		str += 'export async function down(sql: Sql) {}\n';
-	} else if (selected === 'postgres') {
-		str += 'export async function up(sql) {\n\n}\n\n';
-		str += 'export async function down(sql) {\n\n}\n';
-	} else {
-		str += 'export async function up(client) {\n\n}\n\n';
-		str += 'export async function down(client) {\n\n}\n';
-	}
-	writeFileSync(file, str);
+	let driver = pickDriver(opts);
+	let withPostgresTypes = driver === 'postgres' && /\.tsx?$/.test(filename);
+	let arg = driver === 'postgres' ? (withPostgresTypes ? 'sql: Sql' : 'sql') : 'client';
+	let header = withPostgresTypes ? "import type { Sql } from 'postgres';\n\n" : '';
+	writeFileSync(
+		join(dir, filename),
+		`${header}export async function up(${arg}) {\n\n}\n\nexport async function down(${arg}) {\n\n}\n`
+	);
 
 	return filename;
 }

@@ -99,15 +99,13 @@ Lastly, each migration file must have an `up` and a `down` task.<br>
 These must be exported functions &mdash; `async` okay! &mdash; and will receive your pre-installed client driver as its only argument:
 
 ```js
-export async function up(DB) {
-  // with `pg` :: DB === pg.Client
-  await DB.query(`select * from users`);
+import type { Sql } from 'postgres';
 
-  // with `postgres` :: DB === sql``
-  await DB`select * from users`;
+export async function up(sql: Sql) {
+  await sql`select * from users`;
 }
 
-export async function down(DB) {
+export async function down(sql: Sql) {
   // My pre-configured "undo" function
 }
 ```
@@ -225,17 +223,15 @@ export default {
 
 Migration files use ESM syntax:
 
-```js
-// migrations/000-example.js
-export async function up(DB) {
-  // with `pg` :: DB === pg.Client
-  await DB.query(`select * from users`);
+```ts
+// migrations/000-example.ts
+import type { Sql } from 'postgres';
 
-  // with `postgres` :: DB === sql``
-  await DB`select * from users`;
+export async function up(sql: Sql) {
+  await sql`select * from users`;
 }
 
-export async function down(DB) {
+export async function down(sql: Sql) {
   // My pre-configured "undo" function
 }
 ```
@@ -247,10 +243,12 @@ $ ley new todos
 #=> migrations/003-todos.ts
 
 $ cat migrations/003-todos.ts
-#=> export async function up(client) {
+#=> import type { Sql } from 'postgres';
+#=> 
+#=> export async function up(sql: Sql) {
 #=> }
 #=> 
-#=> export async function down(client) {
+#=> export async function down(sql: Sql) {
 #=> }
 ```
 
@@ -259,9 +257,11 @@ When `postgres` is auto-detected, generated migrations default to:
 ```ts
 import type { Sql } from 'postgres';
 
-export async function up(sql: Sql) {}
+export async function up(sql: Sql) {
+}
 
-export async function down(sql: Sql) {}
+export async function down(sql: Sql) {
+}
 ```
 
 ## Drivers
@@ -302,9 +302,9 @@ Node.js `v22.18.0+` enables TypeScript type stripping by default, so `.ts` migra
 You may also use [JSDoc](https://jsdoc.app/) annotations throughout your file to achieve (most) of the benefits of TypeScript, but without installing and configuring TypeScript.
 
 ```js
-/** @param {import('pg').Client} DB */
-export async function up(DB) {
-  await DB.query(...)
+/** @param {import('postgres').Sql} sql */
+export async function up(sql) {
+  await sql`select * from users`
 }
 ```
 

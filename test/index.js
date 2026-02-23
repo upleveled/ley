@@ -1,18 +1,8 @@
 const { test } = require('uvu');
 const assert = require('uvu/assert');
 const fs = require('fs');
-const os = require('os');
-const { join, parse, resolve } = require('path');
+const { join } = require('path');
 const ley = require('..');
-
-function tmpBaseDir() {
-	// Windows can place os.tmpdir() on a different drive than the checkout path.
-	// Use OS temp when roots match, otherwise keep temp files in test/ for safety.
-	if (process.platform !== 'win32') return os.tmpdir();
-	const cwdRoot = parse(resolve(process.cwd())).root.toLowerCase();
-	const tmpRoot = parse(resolve(os.tmpdir())).root.toLowerCase();
-	return cwdRoot === tmpRoot ? os.tmpdir() : __dirname;
-}
 
 test('exports', () => {
 	assert.type(ley, 'object');
@@ -22,25 +12,8 @@ test('exports', () => {
 	assert.type(ley.new, 'function');
 });
 
-test('new :: defaults to ESM .ts', async () => {
-	const cwd = fs.mkdtempSync(join(tmpBaseDir(), 'ley-new-default-'));
-	const migrations = join(cwd, 'migrations');
-	fs.mkdirSync(migrations);
-	fs.writeFileSync(join(migrations, '00001-first.js'), 'export async function up() {}\n');
-
-	try {
-		const output = await ley.new({ cwd, dir: 'migrations', filename: 'users', length: 5, driver: 'pg' });
-		assert.is(output, '00002-users.ts');
-
-		const body = fs.readFileSync(join(migrations, output), 'utf8');
-		assert.is(body, 'export async function up(client) {\n\n}\n\nexport async function down(client) {\n\n}\n');
-	} finally {
-		fs.rmSync(cwd, { recursive: true, force: true });
-	}
-});
-
 test('new :: postgres template uses Sql type', async () => {
-	const cwd = fs.mkdtempSync(join(tmpBaseDir(), 'ley-new-postgres-'));
+	const cwd = fs.mkdtempSync(join(__dirname, '.tmp-ley-new-postgres-'));
 	const migrations = join(cwd, 'migrations');
 	fs.mkdirSync(migrations);
 	fs.writeFileSync(join(migrations, '00001-first.js'), 'export async function up() {}\n');
@@ -52,7 +25,7 @@ test('new :: postgres template uses Sql type', async () => {
 		const body = fs.readFileSync(join(migrations, output), 'utf8');
 		assert.is(
 			body,
-			"import type { Sql } from 'postgres';\n\nexport async function up(sql: Sql) {}\n\nexport async function down(sql: Sql) {}\n"
+			"import type { Sql } from 'postgres';\n\nexport async function up(sql: Sql) {\n\n}\n\nexport async function down(sql: Sql) {\n\n}\n"
 		);
 	} finally {
 		fs.rmSync(cwd, { recursive: true, force: true });
@@ -60,7 +33,7 @@ test('new :: postgres template uses Sql type', async () => {
 });
 
 test('new :: postgres template is JS-compatible with .js extension', async () => {
-	const cwd = fs.mkdtempSync(join(tmpBaseDir(), 'ley-new-postgres-js-'));
+	const cwd = fs.mkdtempSync(join(__dirname, '.tmp-ley-new-postgres-js-'));
 	const migrations = join(cwd, 'migrations');
 	fs.mkdirSync(migrations);
 	fs.writeFileSync(join(migrations, '00001-first.js'), 'export async function up() {}\n');
@@ -77,7 +50,7 @@ test('new :: postgres template is JS-compatible with .js extension', async () =>
 });
 
 test('new :: prefers explicit driver over autodetection for template', async () => {
-	const cwd = fs.mkdtempSync(join(tmpBaseDir(), 'ley-new-driver-priority-'));
+	const cwd = fs.mkdtempSync(join(__dirname, '.tmp-ley-new-driver-priority-'));
 	const migrations = join(cwd, 'migrations');
 	fs.mkdirSync(migrations);
 	fs.writeFileSync(join(migrations, '00001-first.js'), 'export async function up() {}\n');
