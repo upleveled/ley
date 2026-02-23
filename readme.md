@@ -72,34 +72,34 @@ Because of this, it's often recommended to prefix migrations with a timestamp or
 
 ```
 /migrations
-  |-- 000-users.js
-  |-- 001-teams.js
-  |-- 002-seats.js
+  |-- 000-users.ts
+  |-- 001-teams.ts
+  |-- 002-seats.ts
 ```
 
-> **Note**: You may create the next file via `ley new todos --length 3` where `todos` is a meaningful name.<br>The above command will create the `migrations/003-todos.js` filepath.
+> **Note**: You may create the next file via `ley new todos --length 3` where `todos` is a meaningful name.<br>The above command will create the `migrations/003-todos.ts` filepath.
 
 ***Timestamped***
 
 ```
 /migrations
-  |-- 1581323445-users.js
-  |-- 1581323453-teams.js
-  |-- 1581323458-seats.js
+  |-- 1581323445-users.ts
+  |-- 1581323453-teams.ts
+  |-- 1581323458-seats.ts
 ```
 
-> **Note**: You may create the next file via `ley new todos --timestamp` where `todos` is a meaningful name.<br>The above command will create the `migrations/1584389617-todos.js` filepath...or similar.
+> **Note**: You may create the next file via `ley new todos --timestamp` where `todos` is a meaningful name.<br>The above command will create the `migrations/1584389617-todos.ts` filepath...or similar.
 
 
 **The order of your migrations is critically important!**<br>Migrations must be treated as an append-only immutable task chain. Without this, there's no way to _reliably_ rollback or recreate your database.
 
-> **Example:** (Above) You cannot apply/create `001-teams.js` _after_ `002-seats.js` has already been applied.<br>Doing so would force your teammates or database replicas to recreate "the world" in the wrong sequence.<br>This may not _always_ pose a problem (eg, unrelated tasks) but it **often does** and so `ley` enforces this practice.
+> **Example:** (Above) You cannot apply/create `001-teams.ts` _after_ `002-seats.ts` has already been applied.<br>Doing so would force your teammates or database replicas to recreate "the world" in the wrong sequence.<br>This may not _always_ pose a problem (eg, unrelated tasks) but it **often does** and so `ley` enforces this practice.
 
 Lastly, each migration file must have an `up` and a `down` task.<br>
 These must be exported functions &mdash; `async` okay! &mdash; and will receive your pre-installed client driver as its only argument:
 
 ```js
-exports.up = async function (DB) {
+export async function up(DB) {
   // with `pg` :: DB === pg.Client
   await DB.query(`select * from users`);
 
@@ -107,7 +107,7 @@ exports.up = async function (DB) {
   await DB`select * from users`;
 }
 
-exports.down = async function (DB) {
+export async function down(DB) {
   // My pre-configured "undo" function
 }
 ```
@@ -293,15 +293,9 @@ For extra confidence while writing your migration file(s), there are two options
 
 ### TypeScript
 
-1. Ensure [`tsm`](https://www.npmjs.com/package/tsm) is installed
+Node.js `v22.18.0+` enables TypeScript type stripping by default, so `.ts` migrations can run without `tsm` or other runtime transpilers.
 
-2. Run `ley` with the [`require`](#optsrequire) option so that `tsm` can process file(s)
-
-   ```sh
-   $ ley -r tsm <cmd>
-   # or
-   $ ley --require tsm <cmd>
-   ```
+> **Note:** This supports erasable TypeScript syntax. For TypeScript features that require transforms (eg, `enum`), use Node.js transform flags or a dedicated runtime.
 
 ### JSDoc
 
@@ -322,7 +316,7 @@ export async function up(DB) {
 ### ley.up(opts?)
 Returns: `Promise<string[]>`
 
-Returns a list of the _relative filenames_ (eg, `000-users.js`) that were successfully applied.
+Returns a list of the _relative filenames_ (eg, `000-users.ts`) that were successfully applied.
 
 #### opts.single
 Type: `boolean`<br>
@@ -336,7 +330,7 @@ By default, all migration files will be queue for application.
 ### ley.down(opts?)
 Returns: `Promise<string[]>`
 
-Returns a list of the _relative filenames_ (eg, `000-users.js`) that were successfully applied.
+Returns a list of the _relative filenames_ (eg, `000-users.ts`) that were successfully applied.
 
 #### opts.all
 Type: `boolean`<br>
@@ -349,13 +343,13 @@ By default, only the most recently-applied migration file is invoked.
 ### ley.status(opts?)
 Returns: `Promise<string[]>`
 
-Returns a list of the _relative filenames_ (eg, `000-users.js`) that have not yet been applied.
+Returns a list of the _relative filenames_ (eg, `000-users.ts`) that have not yet been applied.
 
 
 ### ley.new(opts?)
 Returns: `Promise<string>`
 
-Returns the newly created _relative filename_ (eg, `000-users.js`).
+Returns the newly created _relative filename_ (eg, `000-users.ts`).
 
 #### opts.filename
 Type: `string`
@@ -376,7 +370,7 @@ Type: `number`<br>
 Default: `5`
 
 When **not** using a timestamped prefix, this value controls the prefix total length.<br>
-For example, `00000-users.js` will be followed by `00001-teams.js`.
+For example, `00000-users.ts` will be followed by `00001-teams.ts`.
 
 
 ## Options
