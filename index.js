@@ -3,7 +3,7 @@ const { writeFileSync } = require('fs');
 const { mkdir } = require('mk-dirs');
 const $ = require('./lib/util');
 
-function pickDriver(opts) {
+function resolveDriver(opts) {
 	return opts.driver || (opts.config && opts.config.driver) || $.detect();
 }
 
@@ -18,7 +18,7 @@ async function parse(opts) {
 	});
 
 	// cli(`--driver`) > config(exports.driver) > autodetect
-	let driver = pickDriver(opts);
+	let driver = resolveDriver(opts);
 	if (!driver) throw new Error('Unable to locate a database driver');
 
 	// allow `require` throws
@@ -115,7 +115,7 @@ exports.new = async function (opts={}) {
 	}
 	await mkdir(dir);
 
-	let isPostgres = pickDriver(opts) === 'postgres';
+	let isPostgres = resolveDriver(opts) === 'postgres';
 	let arg = isPostgres ? 'sql: Sql' : 'client';
 	writeFileSync(
 		join(dir, filename),
