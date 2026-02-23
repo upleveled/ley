@@ -290,7 +290,7 @@ By default, all migration files will be queue for application.
 ### ley.down(opts?)
 Returns: `Promise<string[]>`
 
-Returns a list of the _relative filenames_ (eg, `000-users.ts`) whose `down` tasks were successfully executed (i.e., migrations that were rolled back).
+Returns a list of the _relative filenames_ (eg, `000-users.ts`) whose `down` tasks were successfully executed (migrations that were rolled back).
 
 #### opts.all
 Type: `boolean`<br>
