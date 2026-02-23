@@ -299,26 +299,11 @@ With any of these, if `driver` is a string then it will be passed through `requi
 > **Important:** All drivers must adhere to the [`Driver` interface](/ley.d.ts#L45-L67)!
 
 
-## Typed Migrations
+## TypeScript Support
 
-For extra confidence while writing your migration file(s), there are two options:
+`ley` uses Node.js v22.18.0+ TypeScript type stripping, so `.ts` migrations can run without additional runtime transpilers.
 
-### TypeScript
-
-Node.js `v22.18.0+` enables TypeScript type stripping by default, so `.ts` migrations can run without `tsm` or other runtime transpilers.
-
-> **Note:** This supports erasable TypeScript syntax. For TypeScript features that require transforms (eg, `enum`), use Node.js transform flags or a dedicated runtime.
-
-### JSDoc
-
-You may also use [JSDoc](https://jsdoc.app/) annotations throughout your file to achieve (most) of the benefits of TypeScript, but without installing and configuring TypeScript.
-
-```js
-/** @param {import('postgres').Sql} sql */
-export async function up(sql) {
-  await sql`select * from users`
-}
-```
+> **Note:** This supports erasable TypeScript syntax. For TypeScript features that require transforms (eg, `enum`), use Node.js transform flags such as `--experimental-transform-types`.
 
 ## API
 
