@@ -98,7 +98,7 @@ Because of this, it's often recommended to prefix migrations with a timestamp or
 Lastly, each migration file must have an `up` and a `down` task.<br>
 These must be exported functions &mdash; `async` okay! &mdash; and will receive your pre-installed client driver as its only argument:
 
-```js
+```ts
 import type { Sql } from 'postgres';
 
 export async function up(sql: Sql) {
