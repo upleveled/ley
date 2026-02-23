@@ -14,7 +14,8 @@ async function parse(opts) {
 	});
 
 	// cli(`--driver`) > config(exports.driver) > autodetect
-	let driver = opts.driver || opts.config.driver || $.detect();
+	let selected = opts.driver || (opts.config && opts.config.driver) || $.detect();
+	let driver = selected;
 	if (!driver) throw new Error('Unable to locate a database driver');
 
 	// allow `require` throws
@@ -27,7 +28,7 @@ async function parse(opts) {
 
 	const migrations = await $.glob(dir, opts.fileRegex);
 
-	return { driver, migrations };
+	return { driver, migrations, selected };
 }
 
 exports.up = async function (opts={}) {
@@ -86,7 +87,7 @@ exports.status = async function (opts={}) {
 }
 
 exports.new = async function (opts={}) {
-	let { migrations } = await parse(opts);
+	let { migrations, selected } = await parse(opts);
 
 	let prefix = '';
 	if (opts.timestamp) {
@@ -109,10 +110,14 @@ exports.new = async function (opts={}) {
 	let str = '';
 	await mkdir(dir);
 
-	if ($.detect() === 'postgres') {
+	let isTypeScript = /\.tsx?$/.test(filename);
+	if (selected === 'postgres' && isTypeScript) {
 		str += "import type { Sql } from 'postgres';\n\n";
 		str += 'export async function up(sql: Sql) {}\n\n';
 		str += 'export async function down(sql: Sql) {}\n';
+	} else if (selected === 'postgres') {
+		str += 'export async function up(sql) {\n\n}\n\n';
+		str += 'export async function down(sql) {\n\n}\n';
 	} else {
 		str += 'export async function up(client) {\n\n}\n\n';
 		str += 'export async function down(client) {\n\n}\n';
