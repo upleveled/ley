@@ -1,7 +1,11 @@
-const { join, resolve } = require('path');
+const { extname, join, resolve } = require('path');
 const { writeFileSync } = require('fs');
 const { mkdir } = require('mk-dirs');
 const $ = require('./lib/util');
+
+function resolveDriver(opts) {
+	return opts.driver || (opts.config && opts.config.driver) || $.detect();
+}
 
 async function parse(opts) {
 	const cwd = resolve(opts.cwd || '.');
@@ -14,7 +18,7 @@ async function parse(opts) {
 	});
 
 	// cli(`--driver`) > config(exports.driver) > autodetect
-	let driver = opts.driver || opts.config.driver || $.detect();
+	let driver = resolveDriver(opts);
 	if (!driver) throw new Error('Unable to locate a database driver');
 
 	// allow `require` throws
@@ -102,21 +106,22 @@ exports.new = async function (opts={}) {
 	}
 
 	let filename = prefix + '-' + opts.filename.replace(/\s+/g, '-');
-	if (!/\.\w+$/.test(filename)) filename += opts.esm ? '.mjs' : '.js';
+	let ext = extname(filename);
+	if (!ext) {
+		filename += '.ts';
+	} else if (ext !== '.ts' && ext !== '.tsx') {
+		throw new Error('New migration files must use a TypeScript extension (.ts or .tsx)');
+	}
 	let dir = resolve(opts.cwd || '.', opts.dir);
 	let file = join(dir, filename);
-
-	let str = '';
 	await mkdir(dir);
 
-	if (opts.esm) {
-		str += 'export async function up(client) {\n\n}\n\n';
-		str += 'export async function down(client) {\n\n}\n';
-	} else {
-		str += 'exports.up = async client => {\n\n};\n\n';
-		str += 'exports.down = async client => {\n\n};\n';
-	}
-	writeFileSync(file, str);
+	let isPostgres = resolveDriver(opts) === 'postgres';
+	let arg = isPostgres ? 'sql: Sql' : 'client';
+	writeFileSync(
+		file,
+		`${isPostgres ? "import type { Sql } from 'postgres';\n\n" : ''}export async function up(${arg}) {\n\n}\n\nexport async function down(${arg}) {\n\n}\n`
+	);
 
 	return filename;
 }
